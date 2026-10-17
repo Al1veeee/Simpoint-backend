@@ -1,0 +1,71 @@
+### Вход
+# Пароль хранится в http/http-client.private.env.json (файл в .gitignore):
+# {"local": {"password": "ваш_пароль"}}
+# Окружение "local" выбирается в выпадающем списке над запросом.
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{"username": "{{username}}", "password": "{{password}}"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Матрица услуг по оператору
+GET http://localhost:8080/api/v1/capabilities/MEGAFON
+Authorization: Bearer {{token}}
+
+### Остатки сим-карт
+GET http://localhost:8080/api/v1/sim-cards/stock
+Authorization: Bearer {{token}}
+
+### Оприходовать партию
+POST http://localhost:8080/api/v1/sim-cards/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"operator": "T2", "iccids": ["8970100000000000101", "8970100000000000102"]}
+
+### Сим-карты T2 на складе
+GET http://localhost:8080/api/v1/sim-cards?operator=T2&status=IN_STOCK
+Authorization: Bearer {{token}}
+
+### Тарифы T2
+GET http://localhost:8080/api/v1/tariffs?operator=T2
+Authorization: Bearer {{token}}
+
+### Оформить продажу: сим-карта с тарифом плюс услуга
+POST http://localhost:8080/api/v1/sales
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "paymentMethod": "CARD",
+  "items": [
+    {"serviceType": "SIM_SALE", "operator": "T2", "simCardId": 1, "tariffId": 1},
+    {"serviceType": "PHONE_SETUP", "price": 300, "description": "Настройка телефона"}
+  ]
+}
+
+### Попытка услуги, которую точка не делает для МТС (ожидается 409)
+POST http://localhost:8080/api/v1/sales
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "paymentMethod": "CASH",
+  "items": [{"serviceType": "IMEI_REPLACEMENT", "operator": "MTS", "price": 1500}]
+}
+
+### Продажи за сегодня
+GET http://localhost:8080/api/v1/sales?from=2026-10-17&to=2026-10-17
+Authorization: Bearer {{token}}
+
+### Отчёт за период
+GET http://localhost:8080/api/v1/reports/sales?from=2026-10-01&to=2026-10-31
+Authorization: Bearer {{token}}
+
+### Отмена продажи
+POST http://localhost:8080/api/v1/sales/1/cancel
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"reason": "Клиент передумал"}

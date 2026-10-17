@@ -1,0 +1,37 @@
+# Секреты берутся из файла .env рядом с этим файлом (шаблон: .env.example).
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: simpoint
+      POSTGRES_USER: ${DB_USER:-simpoint}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-simpoint}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d simpoint"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/simpoint
+      DB_USER: ${DB_USER:-simpoint}
+      DB_PASSWORD: ${DB_PASSWORD:-simpoint}
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Europe/Moscow}
+      TELEGRAM_ENABLED: ${TELEGRAM_ENABLED:-false}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+    ports:
+      - "127.0.0.1:8080:8080"
+
+volumes:
+  pgdata:

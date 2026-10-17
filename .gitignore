@@ -1,0 +1,34 @@
+# Сборка
+target/
+out/
+*.log
+
+# IDE (в .idea/workspace.xml IntelliJ хранит переменные окружения запуска, в том числе токены)
+.idea/
+.run/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# Секреты и локальные настройки
+.env
+.env.*
+!.env.example
+*.local.yml
+application-local.*
+http/http-client.private.env.json
+*.pem
+*.key
+*.p12
+*.jks
+
+# Выгрузки базы с реальными данными
+*.dump
+*.backup
+*.sql.gz
+
+# ОС
+.DS_Store
+Thumbs.db
